@@ -1,0 +1,67 @@
+class Claimant:
+    def __init__(self, name, credentials):
+        self.name = name
+        self.credentials = credentials
+        self.appointments = []
+
+    def book_appointment(self, provider, time):
+        self.appointments.append({'provider': provider, 'time': time})
+        return f"Appointment booked with {provider} at {time}."
+
+    def view_appointments(self):
+        return self.appointments
+
+class AccidentFund:
+    def __init__(self):
+        self.claimants = {}
+        self.logged_in_claimant = None
+
+    def register_claimant(self, name, credentials):
+        if name not in self.claimants:
+            self.claimants[name] = Claimant(name, credentials)
+            return f"Claimant {name} registered."
+        return "Claimant already exists."
+
+    def login(self, name, credentials):
+        if name in self.claimants and self.claimants[name].credentials == credentials:
+            self.logged_in_claimant = self.claimants[name]
+            return f"{name} logged in."
+        return "Invalid credentials."
+
+    def logout(self):
+        if self.logged_in_claimant:
+            self.logged_in_claimant = None
+            return "Logged out successfully."
+        return "No claimant currently logged in."
+
+    def book_appointment(self, provider, time):
+        if self.logged_in_claimant:
+            return self.logged_in_claimant.book_appointment(provider, time)
+        return "Login required to book an appointment."
+
+    def view_appointments(self):
+        if self.logged_in_claimant:
+            return self.logged_in_claimant.view_appointments()
+        return "Login required to view appointments."
+
+# Example usage
+fund = AccidentFund()
+
+# Registering claimants
+print(fund.register_claimant("John Doe", "password123"))
+print(fund.register_claimant("Jane Smith", "securepass456"))
+
+# Logging in
+print(fund.login("John Doe", "password123"))
+
+# Booking an appointment
+print(fund.book_appointment("Dr. Smith", "2024-10-25 10:00 AM"))
+
+# Viewing appointments
+print(fund.view_appointments())
+
+# Logging out
+print(fund.logout())
+
+# Trying to book appointment after logout
+print(fund.book_appointment("Dr. Smith", "2024-10-26 11:00 AM"))
