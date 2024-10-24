@@ -1,67 +1,138 @@
-class Claimant:
-    def __init__(self, name, credentials):
-        self.name = name
-        self.credentials = credentials
-        self.appointments = []
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Vehicle Accident Fund</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Motor Vehicle Accident Fund</h1>
 
-    def book_appointment(self, provider, time):
-        self.appointments.append({'provider': provider, 'time': time})
-        return f"Appointment booked with {provider} at {time}."
+    <div id="home">
+        <h2>Welcome</h2>
+        <button onclick="showRegister()">Register</button>
+        <button onclick="showLogin()">Login</button>
+    </div>
 
-    def view_appointments(self):
-        return self.appointments
+    <div id="register" class="hidden">
+        <h2>Register</h2>
+        <input type="text" id="regName" placeholder="Your Name" required>
+        <input type="password" id="regPassword" placeholder="Your Password" required>
+        <button onclick="register()">Submit</button>
+        <button onclick="goHome()">Back</button>
+    </div>
 
-class AccidentFund:
-    def __init__(self):
-        self.claimants = {}
-        self.logged_in_claimant = None
+    <div id="login" class="hidden">
+        <h2>Login</h2>
+        <input type="text" id="loginName" placeholder="Your Name" required>
+        <input type="password" id="loginPassword" placeholder="Your Password" required>
+        <button onclick="login()">Login</button>
+        <button onclick="goHome()">Back</button>
+    </div>
 
-    def register_claimant(self, name, credentials):
-        if name not in self.claimants:
-            self.claimants[name] = Claimant(name, credentials)
-            return f"Claimant {name} registered."
-        return "Claimant already exists."
+    <div id="dashboard" class="hidden">
+        <h2>Dashboard</h2>
+        <p>Welcome, <span id="claimantName"></span>!</p>
+        <h3>Book an Appointment</h3>
+        <input type="text" id="provider" placeholder="Service Provider" required>
+        <input type="datetime-local" id="appointmentTime" required>
+        <button onclick="bookAppointment()">Book Appointment</button>
+        <h3>Your Appointments</h3>
+        <ul id="appointmentList"></ul>
+        <button onclick="logout()">Logout</button>
+    </div>
 
-    def login(self, name, credentials):
-        if name in self.claimants and self.claimants[name].credentials == credentials:
-            self.logged_in_claimant = self.claimants[name]
-            return f"{name} logged in."
-        return "Invalid credentials."
+    <script>
+        let claimants = {};
+        let currentClaimant = null;
 
-    def logout(self):
-        if self.logged_in_claimant:
-            self.logged_in_claimant = None
-            return "Logged out successfully."
-        return "No claimant currently logged in."
+        function showRegister() {
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('register').classList.remove('hidden');
+        }
 
-    def book_appointment(self, provider, time):
-        if self.logged_in_claimant:
-            return self.logged_in_claimant.book_appointment(provider, time)
-        return "Login required to book an appointment."
+        function showLogin() {
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('login').classList.remove('hidden');
+        }
 
-    def view_appointments(self):
-        if self.logged_in_claimant:
-            return self.logged_in_claimant.view_appointments()
-        return "Login required to view appointments."
+        function goHome() {
+            document.getElementById('home').classList.remove('hidden');
+            document.getElementById('register').classList.add('hidden');
+            document.getElementById('login').classList.add('hidden');
+            clearInputs();
+        }
 
-# Example usage
-fund = AccidentFund()
+        function clearInputs() {
+            document.getElementById('regName').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('loginName').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('provider').value = '';
+            document.getElementById('appointmentTime').value = '';
+        }
 
-# Registering claimants
-print(fund.register_claimant("John Doe", "password123"))
-print(fund.register_claimant("Jane Smith", "securepass456"))
+        function register() {
+            const name = document.getElementById('regName').value;
+            const password = document.getElementById('regPassword').value;
 
-# Logging in
-print(fund.login("John Doe", "password123"))
+            if (name && password) {
+                claimants[name] = { password, appointments: [] };
+                alert("Registration successful!");
+                goHome();
+            } else {
+                alert("Please fill in all fields.");
+            }
+        }
 
-# Booking an appointment
-print(fund.book_appointment("Dr. Smith", "2024-10-25 10:00 AM"))
+        function login() {
+            const name = document.getElementById('loginName').value;
+            const password = document.getElementById('loginPassword').value;
 
-# Viewing appointments
-print(fund.view_appointments())
+            if (claimants[name] && claimants[name].password === password) {
+                currentClaimant = name;
+                document.getElementById('claimantName').innerText = currentClaimant;
+                loadAppointments();
+                document.getElementById('home').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+            } else {
+                alert("Invalid credentials.");
+            }
+        }
 
-# Logging out
-print(fund.logout())
+        function loadAppointments() {
+            const list = document.getElementById('appointmentList');
+            list.innerHTML = '';
+            if (currentClaimant && claimants[currentClaimant]) {
+                claimants[currentClaimant].appointments.forEach(appointment => {
+                    const item = document.createElement('li');
+                    item.textContent = `Provider: ${appointment.provider}, Time: ${appointment.time}`;
+                    list.appendChild(item);
+                });
+            }
+        }
 
-# Trying to book appointment after logout
-print(fund.book_appointment("Dr. Smith", "2024-10-26 11:00 AM"))
+        function bookAppointment() {
+            const provider = document.getElementById('provider').value;
+            const time = document.getElementById('appointmentTime').value;
+
+            if (provider && time && currentClaimant) {
+                claimants[currentClaimant].appointments.push({ provider, time });
+                loadAppointments();
+                clearInputs();
+            } else {
+                alert("Please fill in all fields.");
+            }
+        }
+
+        function logout() {
+            currentClaimant = null;
+            goHome();
+        }
+    </script>
+</body>
+</html>
