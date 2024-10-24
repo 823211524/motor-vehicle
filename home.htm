@@ -4,51 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motor Vehicle Accident Fund</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .hidden { display: none; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Motor Vehicle Accident Fund</h1>
-
     <div id="home">
+        <h1>Motor Vehicle Accident Fund</h1>
         <h2>Welcome</h2>
-        <button onclick="showRegister()">Register</button>
-        <button onclick="showLogin()">Login</button>
+        <button class="button" onclick="showRegister()">Register</button>
+        <button class="button" onclick="showLogin()">Login</button>
     </div>
 
     <div id="register" class="hidden">
         <h2>Register</h2>
         <input type="text" id="regName" placeholder="Your Name" required>
         <input type="password" id="regPassword" placeholder="Your Password" required>
-        <button onclick="register()">Submit</button>
-        <button onclick="goHome()">Back</button>
+        <button class="submit-button" onclick="register()">Submit</button>
+        <button class="back-button" onclick="goHome()">Back to Home</button>
     </div>
 
     <div id="login" class="hidden">
         <h2>Login</h2>
         <input type="text" id="loginName" placeholder="Your Name" required>
         <input type="password" id="loginPassword" placeholder="Your Password" required>
-        <button onclick="login()">Login</button>
-        <button onclick="goHome()">Back</button>
+        <button class="submit-button" onclick="login()">Login</button>
+        <button class="back-button" onclick="goHome()">Back to Home</button>
     </div>
 
     <div id="dashboard" class="hidden">
         <h2>Dashboard</h2>
         <p>Welcome, <span id="claimantName"></span>!</p>
         <h3>Book an Appointment</h3>
-        <input type="text" id="provider" placeholder="Service Provider" required>
+        <select id="provider">
+            <option value="">Select Service Provider</option>
+            <option value="Provider A">Provider A</option>
+            <option value="Provider B">Provider B</option>
+            <option value="Provider C">Provider C</option>
+        </select>
         <input type="datetime-local" id="appointmentTime" required>
-        <button onclick="bookAppointment()">Book Appointment</button>
+        <button class="submit-button" onclick="bookAppointment()">Book Appointment</button>
         <h3>Your Appointments</h3>
         <ul id="appointmentList"></ul>
-        <button onclick="logout()">Logout</button>
+        <button class="cancel-button" onclick="cancelAppointment()">Cancel Appointment</button>
+        <button class="logout-button" onclick="logout()">Logout</button>
     </div>
 
     <script>
         let claimants = {};
         let currentClaimant = null;
+        let currentAppointmentIndex = -1;
 
         function showRegister() {
             document.getElementById('home').classList.add('hidden');
@@ -74,6 +77,7 @@
             document.getElementById('loginPassword').value = '';
             document.getElementById('provider').value = '';
             document.getElementById('appointmentTime').value = '';
+            currentAppointmentIndex = -1; // Reset the appointment index
         }
 
         function register() {
@@ -108,12 +112,17 @@
             const list = document.getElementById('appointmentList');
             list.innerHTML = '';
             if (currentClaimant && claimants[currentClaimant]) {
-                claimants[currentClaimant].appointments.forEach(appointment => {
+                claimants[currentClaimant].appointments.forEach((appointment, index) => {
                     const item = document.createElement('li');
                     item.textContent = `Provider: ${appointment.provider}, Time: ${appointment.time}`;
+                    item.onclick = () => selectAppointment(index); // Allow appointment selection for cancellation
                     list.appendChild(item);
                 });
             }
+        }
+
+        function selectAppointment(index) {
+            currentAppointmentIndex = index;
         }
 
         function bookAppointment() {
@@ -126,6 +135,16 @@
                 clearInputs();
             } else {
                 alert("Please fill in all fields.");
+            }
+        }
+
+        function cancelAppointment() {
+            if (currentClaimant && currentAppointmentIndex >= 0) {
+                claimants[currentClaimant].appointments.splice(currentAppointmentIndex, 1);
+                loadAppointments();
+                currentAppointmentIndex = -1; // Reset after cancellation
+            } else {
+                alert("Please select an appointment to cancel.");
             }
         }
 
